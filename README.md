@@ -1,2 +1,2 @@
 # ReverseSeed
-Reverse Seed finder for Pokémon DPPT and HGSS
+Reverse Seed finder for Pokémon DPPT and HGSS.
