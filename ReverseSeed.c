@@ -5,9 +5,12 @@
 /* INCLUDE */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include "string.h"
 
 /* TYPEDEF */
 
+typedef unsigned __int64 u64;
 typedef unsigned __int32 u32;
 typedef unsigned __int16 u16;
 typedef unsigned __int8 u8;
@@ -37,21 +40,30 @@ void ReverseSeed(u32 seed, u8 ver, u8 mod) {
   printf("Closest you can hit on console is %08X (%d frames earlier).\n", state, frame);
 }
 
+u32 ScanValue(u8 message[], u32 value, u8 format[], u64 max) {
+  do {
+    printf("%s", message);
+    u8 userInput[16];
+    fgets(userInput, 9, stdin);
+    if (strlen(userInput) == 0 || strlen(userInput) > 8) {
+      continue;
+    }
+    if (sscanf(userInput, format, &value) != 1) {
+      value = max+1;
+      continue;
+    }
+  } while (value > max);
+  return value;
+}
+
 int main() {
-  u32 seed;
   while (1) {
-    u8 version;
-    do {
-      printf("Enter your game version (0=DPPT, 1=HGSS): ");
-      scanf("%u", &version);
-    } while (version > 1);
-    u8 mode;
-    do {
-      printf("Enter your mode (0=Save&Quit, 1=NewGame): ");
-      scanf("%u", &mode);
-    } while (mode > 1);
-    printf("Enter the seed you want to reverse (hex): ");
-    scanf("%x", &seed);
+    u32 version;
+    u32 mode;
+    u32 seed;
+    version = ScanValue("Enter your game version (0=DPPT, 1=HGSS): ", version, "%u", 1);
+    mode = ScanValue("Enter your mode (0=Save&Quit, 1=NewGame): ", mode, "%u", 1);
+    seed = ScanValue("Enter the seed you want to reverse (hex): ", seed, "%x", 0xffffffff);
     ReverseSeed(seed, version, mode);
     printf("\n");
   }
