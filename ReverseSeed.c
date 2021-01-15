@@ -40,7 +40,8 @@ void ReverseSeed(u32 seed, u8 ver, u8 mod) {
   printf("Closest you can hit on console is %08X (%d frames earlier).\n", state, frame);
 }
 
-u32 ScanValue(u8 message[], u32 value, u8 format[], u64 max) {
+void ScanValue(u8 message[], u32 *value, u8 format[], u64 max) {
+  /* General purpose safe scan. Instruction message, value to change, string format and max value */
   do {
     printf("%s", message);
     u8 userInput[16];
@@ -48,12 +49,11 @@ u32 ScanValue(u8 message[], u32 value, u8 format[], u64 max) {
     if (strlen(userInput) == 0 || strlen(userInput) > 8) {
       continue;
     }
-    if (sscanf(userInput, format, &value) != 1) {
-      value = max+1;
+    if (sscanf(userInput, format, value) != 1) {
+      *value = max + 1;
       continue;
     }
-  } while (value > max);
-  return value;
+  } while (*value > max);
 }
 
 int main() {
@@ -61,9 +61,9 @@ int main() {
     u32 version;
     u32 mode;
     u32 seed;
-    version = ScanValue("Enter your game version (0=DPPT, 1=HGSS): ", version, "%u", 1);
-    mode = ScanValue("Enter your mode (0=Save&Quit, 1=NewGame): ", mode, "%u", 1);
-    seed = ScanValue("Enter the seed you want to reverse (hex): ", seed, "%x", 0xffffffff);
+    ScanValue("Enter your game version (0=DPPT, 1=HGSS): ", &version, "%u", 1);
+    ScanValue("Enter your mode (0=Save&Quit, 1=NewGame): ", &mode, "%u", 1);
+    ScanValue("Enter the seed you want to reverse (hex): ", &seed, "%x", 0xffffffff);
     ReverseSeed(seed, version, mode);
     printf("\n");
   }
