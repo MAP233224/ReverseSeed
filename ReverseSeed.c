@@ -6,47 +6,63 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "string.h"
+#include <stdint.h>
+#include <string.h>
 
 /* TYPEDEF */
 
-typedef unsigned __int64 u64;
-typedef unsigned __int32 u32;
-typedef unsigned __int16 u16;
-typedef unsigned __int8 u8;
+typedef uint64_t u64;
+typedef uint32_t u32;
+typedef uint16_t u16;
+typedef uint8_t u8;
 
 /* DEFINE */
 
 #define SEED_MAX_B (24) //hour
 #define SEED_OFF_C (3600) //delay, 1 minute of leeway
+#define STRING_LENGTH_MAX (16)
 
-u16 VersionsModes[2][2] = {{700, 5000}, {550, 3000}}; //table for minimum delays depending on version and mode
+u8 Versions[2][STRING_LENGTH_MAX] = { "DPPT", "HGSS" };
+u8 RngMethod[2][STRING_LENGTH_MAX] = { "Save & Quit", "New Game" };
 
-void ReverseSeed(u32 seed, u8 ver, u8 mod) {
-  /* Find the nearest console-hitable seed provided the current state of the RNG. Print the number of iterations. */
-  u16 min = VersionsModes[ver][mod];
-  u16 frame = 0;
-  u32 state = seed;
-  u8 a = (seed >> 24) & 0xff;
-  u8 b = (seed >> 16) & 0xff;
-  u16 c = seed & 0xffff;
-  do {
-    state = (state * 0xEEB9EB65 + 0xA3561A1) & 0xffffffff;
-    a = (state >> 24) & 0xff;
-    b = (state >> 16) & 0xff;
-    c = state & 0xffff;
-    frame += 1;
-  } while (b > SEED_MAX_B || c < min || c > (min + SEED_OFF_C));
-  printf("Closest you can hit on console is %08X (%d frames earlier).\n", state, frame);
+/* Table for minimum delays depending on version and mode */
+u16 MinimumDelays[2][2] = {
+	{700, 5000}, //DPPT
+	{550, 3000} //HGSS
+};
+
+void ReverseSeed(u32 seed, u8 version, u8 mode) {
+	/* Find the nearest console-hitable seed provided the current state of the RNG. Print the number of iterations. */
+	u16 min = MinimumDelays[version][mode];
+	u16 frame = 0;
+	u32 state = seed;
+	u8 a = seed >> 24;
+	u8 b = seed >> 16;
+	u16 c = seed & 0xffff;
+	/**/
+	do {
+		state = state * 0xEEB9EB65 + 0xA3561A1; //reverse
+		a = state >> 24;
+		b = state >> 16;
+		c = state & 0xffff;
+		frame++;
+	} while (b > SEED_MAX_B || c < min || c > (min + SEED_OFF_C));
+	/* Print result */
+	printf("\n>Version           %s\n", Versions[version]);
+	printf(">RNG Method        %s\n", RngMethod[mode]);
+	printf(">Desired state     %08X\n", seed);
+	printf(">Closest seed      %08X\n", state);
+	printf(">Frame advances    %u\n", frame);
+	printf("\n--------------------------------\n");
 }
 
 void ScanValue(u8 message[], u32 *value, u8 format[], u64 max) {
   /* General purpose safe scan. Instruction message, value to change, string format and max value */
   do {
     printf("%s", message);
-    u8 userInput[16];
-    fgets(userInput, 9, stdin);
-    if (strlen(userInput) == 0 || strlen(userInput) > 8) {
+    u8 userInput[STRING_LENGTH_MAX];
+    fgets(userInput, STRING_LENGTH_MAX, stdin);
+    if (strlen(userInput) == 0 || strlen(userInput) > STRING_LENGTH_MAX) {
       continue;
     }
     if (sscanf(userInput, format, value) != 1) {
@@ -57,15 +73,18 @@ void ScanValue(u8 message[], u32 *value, u8 format[], u64 max) {
 }
 
 int main() {
-  while (1) {
-    u32 version;
-    u32 mode;
-    u32 seed;
-    ScanValue("Enter your game version (0=DPPT, 1=HGSS): ", &version, "%u", 1);
-    ScanValue("Enter your mode (0=Save&Quit, 1=NewGame): ", &mode, "%u", 1);
-    ScanValue("Enter the seed you want to reverse (hex): ", &seed, "%x", 0xffffffff);
-    ReverseSeed(seed, version, mode);
-    printf("\n");
-  }
-  return 0;
+
+	u32 u_version;
+	u32 u_mode;
+	u32 u_state;
+
+	while (1) {
+		ScanValue("Game version (0=DPPT, 1=HGSS): ", &u_version, "%u", 1);
+		ScanValue("Mode (0=Save&Quit, 1=NewGame): ", &u_mode, "%u", 1);
+		ScanValue("Desired state to reach  (hex): ", &u_state, "%x", 0xffffffff);
+		ReverseSeed(u_state, u_version, u_mode);
+		printf("\n");
+	}
+
+	return 0;
 }
