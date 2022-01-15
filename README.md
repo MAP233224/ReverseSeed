@@ -1,7 +1,7 @@
 # ReverseSeed
-Reverse Seed finder for Pokémon DPPT and HGSS.
+Reverse Seed finder for Pokémon Diamond, Pearl, Platinum, HeartGold and SoulSilver.
 
-- Enter your game version (Diamond/Pearl/Platinum or HeartGold/Soulsilver)
+- Enter your game version (DPPT or HGSS)
 - Enter the RNG method you're using: either starting from a Save & Quit or a New Game.
 - Enter a state for which you want to find the closest possible hittable seed on console.
 
