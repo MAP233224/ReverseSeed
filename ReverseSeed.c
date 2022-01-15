@@ -39,7 +39,7 @@ void ReverseSeed(u32 seed, u8 version, u8 mode) {
 	u8 a = seed >> 24;
 	u8 b = seed >> 16;
 	u16 c = seed & 0xffff;
-	/**/
+	/* Search loop */
 	do {
 		state = state * 0xEEB9EB65 + 0xA3561A1; //reverse
 		a = state >> 24;
